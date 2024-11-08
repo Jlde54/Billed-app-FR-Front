@@ -17,28 +17,66 @@ export default class NewBill {
   }
   handleChangeFile = e => {
     e.preventDefault()
-    const file = this.document.querySelector(`input[data-testid="file"]`).files[0]
-    const filePath = e.target.value.split(/\\/g)
-    const fileName = filePath[filePath.length-1]
-    const formData = new FormData()
-    const email = JSON.parse(localStorage.getItem("user")).email
-    formData.append('file', file)
-    formData.append('email', email)
+    const fileInput = this.document.querySelector(`input[data-testid="file"]`)
+    const file = fileInput.files[0]
+    if (file) {
+      // Extraire l'extension du fichier et la mettre en minuscule
+      const fileName = file.name
+      const fileExtension = fileName.split('.').pop().toLowerCase()
+      // Vérifier si l'extension est valide
+      const allowedExtensions = ["jpg", "jpeg", "png"]
+      if (!allowedExtensions.includes(fileExtension)) {
+        // Afficher un message d'erreur et réinitialiser le champ de fichier
+        alert("Seuls les fichiers au format JPG, JPEG, ou PNG sont acceptés.")
+        fileInput.value = "" // Réinitialise la sélection de fichier
+        return
+      }
+      // Si le fichier est valide, continuez avec le traitement
+      const filePath = e.target.value.split(/\\/g)
+      const email = JSON.parse(localStorage.getItem("user")).email
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('email', email)
 
-    this.store
-      .bills()
-      .create({
-        data: formData,
-        headers: {
-          noContentType: true
-        }
-      })
-      .then(({fileUrl, key}) => {
-        console.log(fileUrl)
-        this.billId = key
-        this.fileUrl = fileUrl
-        this.fileName = fileName
-      }).catch(error => console.error(error))
+      this.store
+        .bills()
+        .create({
+          data: formData,
+          headers: {
+            noContentType: true
+          }
+        })
+        .then(({ fileUrl, key }) => {
+          console.log(fileUrl)
+          this.billId = key
+          this.fileUrl = fileUrl
+          this.fileName = fileName
+        })
+        .catch(error => console.error(error))
+  }
+    // e.preventDefault()
+    // const file = this.document.querySelector(`input[data-testid="file"]`).files[0]
+    // const filePath = e.target.value.split(/\\/g)
+    // const fileName = filePath[filePath.length-1]
+    // const formData = new FormData()
+    // const email = JSON.parse(localStorage.getItem("user")).email
+    // formData.append('file', file)
+    // formData.append('email', email)
+
+    // this.store
+    //   .bills()
+    //   .create({
+    //     data: formData,
+    //     headers: {
+    //       noContentType: true
+    //     }
+    //   })
+    //   .then(({fileUrl, key}) => {
+    //     console.log(fileUrl)
+    //     this.billId = key
+    //     this.fileUrl = fileUrl
+    //     this.fileName = fileName
+    //   }).catch(error => console.error(error))
   }
   handleSubmit = e => {
     e.preventDefault()
