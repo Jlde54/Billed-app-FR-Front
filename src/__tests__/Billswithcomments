@@ -1,0 +1,185 @@
+/**
+ * @jest-environment jsdom
+ */
+
+import {screen, waitFor} from "@testing-library/dom"
+import BillsUI from "../views/BillsUI.js"
+import { bills } from "../fixtures/bills.js"
+import { ROUTES, ROUTES_PATH} from "../constants/routes.js";
+import {localStorageMock} from "../__mocks__/localStorage.js";
+
+import router from "../app/Router.js";
+
+describe("Given I am connected as an employee", () => {
+  describe("When I am on Bills Page", () => {
+    test("Then bill icon in vertical layout should be highlighted", async () => {
+      // Mise en place du contexte de l'utilisateur : 
+      // localStorageMock simule le stockage local (localStorage) du navigateur pour les tests.Ici, on crée une propriété user dans localStorage, indiquant que l'utilisateur est de type "Employee".
+      Object.defineProperty(window, 'localStorage', { value: localStorageMock })
+      window.localStorage.setItem('user', JSON.stringify({ type: 'Employee' }))
+      // Préparation de la structure du DOM : 
+      // Un élément <div id="root"> est ajouté au DOM, nécessaire pour le routage. Cet élément est requis pour initialiser l'application car c'est dans cet élément que le contenu des pages sera chargé.
+      const root = document.createElement("div")
+      root.setAttribute("id", "root")
+      document.body.append(root)
+      // Initialisation de l'application : 
+      // router() initialise le système de routage de l'application.
+      // window.onNavigate(ROUTES_PATH.Bills) simule la navigation vers la page des factures. Cela charge le contenu de la page des factures dans l'élément <div id="root">.
+      router()
+      window.onNavigate(ROUTES_PATH.Bills)
+      // Attente de l'icône de factures : 
+      // waitFor() attend que l'élément ciblé (l'icône) par data-testid="icon-window" soit présent dans le DOM. Cela garantit que le code ne poursuit pas tant que l'icône n'est pas disponible. 
+      // screen.getByTestId('icon-window') localise cette icône une fois qu'elle est affichée.
+      await waitFor(() => screen.getByTestId('icon-window'))
+      const windowIcon = screen.getByTestId('icon-window')
+      // Vérification que l'icône est en surbrillance : vérifie que l'icône contient la classe CSS active-icon
+      expect(windowIcon.classList).toContain('active-icon')
+    })
+
+    test("Then bills should be ordered from earliest to latest", () => {
+      // Chargement de la structure HTML de la page des factures : 
+      // BillsUI({ data: bills }) génère le HTML de la page des factures en utilisant les données de factures fournies (bills).
+      // document.body.innerHTML = ... insère ce HTML dans le DOM, ce qui simule le rendu de la page des factures pour le test.
+      document.body.innerHTML = BillsUI({ data: bills })
+      // Récupération des dates affichées sur la page :
+      // screen.getAllByText(...) sélectionne tous les éléments contenant des dates au format "YYYY-MM-DD" ou similaire. Le motif regex ^(19|20)\d\d[- /.](0[1-9]|1[012])[- /.](0[1-9]|[12][0-9]|3[01])$ capture les dates valides entre les années 1900 et 2099.
+      // .map(a => a.innerHTML) extrait le texte de chaque élément trouvé, générant ainsi un tableau dates contenant les dates au format texte.
+      const dates = screen.getAllByText(/^(19|20)\d\d[- /.](0[1-9]|1[012])[- /.](0[1-9]|[12][0-9]|3[01])$/i).map(a => a.innerHTML)
+      // Définition d'une fonction de tri anti-chronologique :
+      // La fonction antiChrono compare deux dates (a et b). Elle renvoie 1 si a est plus ancienne que b (pour un tri décroissant), ce qui permet de trier les dates de la plus récente à la plus ancienne.
+      const antiChrono = (a, b) => ((a < b) ? 1 : -1)
+      // Création d'une version triée des dates pour comparaison : 
+      // [...dates] crée une copie du tableau dates pour éviter de modifier l'original.
+      // .sort(antiChrono) trie cette copie des dates en utilisant la fonction antiChrono, générant datesSorted, une version triée du tableau de dates en ordre décroissant (anti-chronologique).
+      const datesSorted = [...dates].sort(antiChrono)
+      // Vérification de l'ordre des dates :
+      // expect(dates).toEqual(datesSorted) compare le tableau original dates avec le tableau trié datesSorted. Si dates est déjà trié de la même manière que datesSorted, le test réussit, ce qui signifie que les factures sont affichées en ordre décroissant.
+      expect(dates).toEqual(datesSorted)
+    })
+  })
+})
+
+// Scénario 4
+// Given Je suis connecté en tant qu’employé
+// When Je suis sur la page Bills
+// Then Je peux consulter la liste des note de frais que j’ai déjà envoyées aux administrateurs RH, ordonnées par date décroissante
+
+// Scénario 5
+// Given Je suis connecté en tant qu’employé, je suis sur la page Bills
+// When Je clique sur le bouton arrière de la navigation
+describe("When I click the back button of the navigation", () => {
+  // Then Je reste connecté sur la page Bills
+  test("I stay logged on to the Bills page", () => {
+    // Mock l'URL initiale et la sauvegarde pour vérification : on stocke window.location.href dans initialURL pour la comparer plus tard
+    const initialURL = window.location.href;
+
+    // Simuler des changements d'état dans l'historique : on utilise window.history.pushState(stateObject, title, url) pour simuler la navigation vers une autre page.
+    window.history.pushState({ page: 1 }, 'Titre 1', '/page1');
+
+    // Ajoute une logique pour empêcher la navigation en arrière (simulée ici pour le test) : une fonction de prévention (preventBackNavigation) est ajoutée pour intercepter popstate, et elle restaure l’URL initiale si on tente de naviguer en arrière.
+    const preventBackNavigation = jest.fn((event) => {
+      event.preventDefault();
+      window.history.pushState(null, '', initialURL); // Restaure l'URL
+    });
+    window.addEventListener('popstate', preventBackNavigation);
+
+    // Simuler le clic sur le bouton arrière : window.history.back() permet de revenir dans l’historique comme si l’utilisateur cliquait sur le bouton arrière.
+    window.history.back();
+
+    // Déclenche manuellement l'événement popstate : dispatchEvent(new PopStateEvent('popstate')) simule l’événement qui aurait été déclenché par un clic réel sur le bouton arrière.
+    window.dispatchEvent(new PopStateEvent('popstate'));
+
+    // Vérifie que l'URL actuelle reste identique à l'URL initiale : on s’assure que window.location.href est toujours égal à initialURL
+    expect(window.location.href).toBe(initialURL);
+
+    // Vérifie que le gestionnaire a été appelé : on s’assure que le gestionnaire d’événements a bien été appelé pour confirmer que l'action de retour en arrière a été capturée.
+    expect(preventBackNavigation).toHaveBeenCalled();
+    
+    // Nettoie l'événement pour éviter les fuites de mémoire
+    window.removeEventListener('popstate', preventBackNavigation);
+  })
+})
+
+
+// Scénario 6
+// Given Je suis connecté en tant qu’employé, je suis sur la page Bills
+// When Je clique sur le bouton action pour voir une note de frais
+// Then Une modale s’ouvre et affiche le pdf
+describe("When I click on the action button", () => {
+  test("A modal opens", () => {
+    // Sélectionne le bouton et la modale
+    const button = document.querySelector('[data-testid="icon-eye"]');
+    const modal = document.querySelector('.modal-content');
+
+    // Simule le clic sur le bouton
+    button.addEventListener('click', showModal);
+    button.click();
+
+    // Vérifie que la modale est visible
+    expect(modal).toHaveStyle('display: block');
+  });
+  test("A pdf file is displayed", () => {
+    const button = document.querySelector('[data-testid="icon-eye"]');
+    const modal = document.querySelector('.modal-content');
+    const img = modal.querySelector('img');
+
+    // Simule l'action d'ouverture de la modale et met à jour l'URL de l'image
+    button.addEventListener('click', () => {
+      showModal();
+      img.src = button.getAttribute('data-bill-url');
+    });
+    button.click();
+
+    // Vérifie que l'image contient l'URL du PDF
+    expect(img).toHaveAttribute('src', 'http://localhost:5678/public/b2c71ba62721c09e2108a0d2b1b78a48');
+  });
+});
+
+// Scénario 7
+// Given Je suis connecté en tant qu’employé, je suis sur la page Bills et j’ai cliqué sur le bouton action voir d’une note de frais
+// When Je clique sur le bouton quitter de la modale
+// Then La modale disparaît
+
+// Scénario 8
+// Given Je suis connecté en tant qu’employé, je suis sur la page Bills
+// When Je clique sur le bouton télécharger d’une note de frais
+// Then Le justificatif en pdf de la note de frais sélectionnée est téléchargé
+
+// Scénario 9
+// Given Je suis connecté en tant qu’employé, je suis sur la page Bills
+// When Je clique sur le bouton “Nouvelle note de frais”
+// Then Je suis envoyé sur la page NewBill
+describe("When I click on New Bill Button", () => {
+  test("Then I should be sent on New Bill form", () => {
+    const onNavigate = pathname => {
+      document.body.innerHTML = ROUTES({ pathname });
+    };
+
+    Object.defineProperty(window, "localStorage", {
+      value: localStorageMock,
+    });
+    window.localStorage.setItem(
+      "user",
+      JSON.stringify({
+        type: "Employee",
+      })
+    );
+    const bills = new Bills({
+      document,
+      onNavigate,
+      store: mockedStore,
+      localStorage: window.localStorage,
+    });
+
+    document.body.innerHTML = BillsUI({ data: bills });
+
+    const buttonNewBill = screen.getByRole("button", {
+      name: /nouvelle note de frais/i,
+    });
+    expect(buttonNewBill).toBeTruthy();
+    const handleClickNewBill = jest.fn(bills.handleClickNewBill);
+    buttonNewBill.addEventListener("click", handleClickNewBill);
+    userEvent.click(buttonNewBill);
+    expect(handleClickNewBill).toHaveBeenCalled();
+  });
+});

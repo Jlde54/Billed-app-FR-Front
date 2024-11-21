@@ -145,11 +145,19 @@ export default class {
       this.counter ++
     }
 
-    bills.forEach(bill => {
-      $(`#open-bill${bill.id}`).click((e) => this.handleEditTicket(e, bill, bills))
-    })
+    // bills.forEach(bill => {
+    //   $(`#open-bill${bill.id}`).click((e) => this.handleEditTicket(e, bill, bills))
+    // })
 
-    return bills
+    // issue [Bug Hunt] - Dashboard
+    // Délégation d'événements : attache un seul événement au conteneur des tickets
+    $(`#status-bills-container${this.index}`).off("click").on("click", ".bill-card", (e) => {
+      const billId = $(e.currentTarget).attr('id').replace('open-bill', '');
+      const bill = bills.find(b => b.id === billId);
+      if (bill) this.handleEditTicket(e, bill, bills);
+    });
+
+    // return bills
 
   }
 

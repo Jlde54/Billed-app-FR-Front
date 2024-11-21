@@ -18,7 +18,7 @@ export default class NewBill {
   handleChangeFile = e => {
     e.preventDefault()
     const fileInput = this.document.querySelector(`input[data-testid="file"]`)
-    const file = fileInput.files[0]
+    const file = fileInput.files[0] // Récupère le fichier sélectionné
     if (file) {
       // Extraire l'extension du fichier et la mettre en minuscule
       const fileName = file.name
@@ -37,7 +37,7 @@ export default class NewBill {
       const formData = new FormData()
       formData.append('file', file)
       formData.append('email', email)
-
+      // Prépare les données pour l'envoi au serveur
       this.store
         .bills()
         .create({
@@ -46,37 +46,16 @@ export default class NewBill {
             noContentType: true
           }
         })
-        .then(({ fileUrl, key }) => {
+        // Envoie le fichier au backend
+        .then(({ fileUrl, key }) => { // URL pour accéder au fichier et  clé unique (key) pour identifier la note de frais
           console.log(fileUrl)
           this.billId = key
           this.fileUrl = fileUrl
           this.fileName = fileName
         })
+        // Les erreurs rencontrées lors de l'envoi sont loguées dans la console
         .catch(error => console.error(error))
-  }
-    // e.preventDefault()
-    // const file = this.document.querySelector(`input[data-testid="file"]`).files[0]
-    // const filePath = e.target.value.split(/\\/g)
-    // const fileName = filePath[filePath.length-1]
-    // const formData = new FormData()
-    // const email = JSON.parse(localStorage.getItem("user")).email
-    // formData.append('file', file)
-    // formData.append('email', email)
-
-    // this.store
-    //   .bills()
-    //   .create({
-    //     data: formData,
-    //     headers: {
-    //       noContentType: true
-    //     }
-    //   })
-    //   .then(({fileUrl, key}) => {
-    //     console.log(fileUrl)
-    //     this.billId = key
-    //     this.fileUrl = fileUrl
-    //     this.fileName = fileName
-    //   }).catch(error => console.error(error))
+    }
   }
   handleSubmit = e => {
     e.preventDefault()
