@@ -6,15 +6,19 @@ export default class NewBill {
     this.document = document
     this.onNavigate = onNavigate
     this.store = store
+    // Récupère le formulaire et l'élément <input>
     const formNewBill = this.document.querySelector(`form[data-testid="form-new-bill"]`)
     formNewBill.addEventListener("submit", this.handleSubmit)
     const file = this.document.querySelector(`input[data-testid="file"]`)
     file.addEventListener("change", this.handleChangeFile)
+    // Initialisation des variables
     this.fileUrl = null
     this.fileName = null
     this.billId = null
+    // Crée une instance de Logout pour gérer la déconnexion de l'utilisateur.
     new Logout({ document, localStorage, onNavigate })
   }
+  // Traiter le fichier sélectionné par l'utilisateur dans le formulaire
   handleChangeFile = e => {
     e.preventDefault()
     const fileInput = this.document.querySelector(`input[data-testid="file"]`)
@@ -57,10 +61,12 @@ export default class NewBill {
         .catch(error => console.error(error))
     }
   }
+  // Gère la soumission du formulaire pour ajouter une nouvelle note de frais
   handleSubmit = e => {
     e.preventDefault()
     console.log('e.target.querySelector(`input[data-testid="datepicker"]`).value', e.target.querySelector(`input[data-testid="datepicker"]`).value)
     const email = JSON.parse(localStorage.getItem("user")).email
+    // stockage dans bill des données du formulaire
     const bill = {
       email,
       type: e.target.querySelector(`select[data-testid="expense-type"]`).value,
@@ -74,18 +80,18 @@ export default class NewBill {
       fileName: this.fileName,
       status: 'pending'
     }
-    this.updateBill(bill)
-    this.onNavigate(ROUTES_PATH['Bills'])
+    this.updateBill(bill) // appel de l'envoi des données au backend
+    this.onNavigate(ROUTES_PATH['Bills']) // redirige l'utilisateur vers la page des factures (Bills)
   }
 
   // not need to cover this function by tests
-  updateBill = (bill) => {
+  updateBill = (bill) => {  //  màj d'une note de frais existante dans le backend
     if (this.store) {
       this.store
       .bills()
-      .update({data: JSON.stringify(bill), selector: this.billId})
+      .update({data: JSON.stringify(bill), selector: this.billId})  // bill est envoyé au backend avec la méthode update
       .then(() => {
-        this.onNavigate(ROUTES_PATH['Bills'])
+        this.onNavigate(ROUTES_PATH['Bills']) // redirige vers la page des factures
       })
       .catch(error => console.error(error))
     }
