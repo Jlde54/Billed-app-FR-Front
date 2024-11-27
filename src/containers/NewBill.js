@@ -64,7 +64,18 @@ export default class NewBill {
   // Gère la soumission du formulaire pour ajouter une nouvelle note de frais
   handleSubmit = e => {
     e.preventDefault()
-    console.log('e.target.querySelector(`input[data-testid="datepicker"]`).value', e.target.querySelector(`input[data-testid="datepicker"]`).value)
+    // Vérification de la validité des champs du formulaire
+    const type = e.target.querySelector(`select[data-testid="expense-type"]`).value;
+    const name = e.target.querySelector(`input[data-testid="expense-name"]`).value;
+    const amount = parseInt(e.target.querySelector(`input[data-testid="amount"]`).value);
+    const date = e.target.querySelector(`input[data-testid="datepicker"]`).value;
+
+    if (!type || !name || !amount || amount <= 0 || !date) {
+        // Ne pas soumettre le formulaire si des champs sont invalides
+        alert("Veuillez remplir tous les champs obligatoires avec des valeurs valides.");
+        return;
+    }
+    // console.log('e.target.querySelector(`input[data-testid="datepicker"]`).value', e.target.querySelector(`input[data-testid="datepicker"]`).value)
     const email = JSON.parse(localStorage.getItem("user")).email
     // stockage dans bill des données du formulaire
     const bill = {
