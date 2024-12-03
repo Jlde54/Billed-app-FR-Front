@@ -145,20 +145,20 @@ export default class {
       this.counter ++
     }
 
-    // bills.forEach(bill => {
-    //   $(`#open-bill${bill.id}`).click((e) => this.handleEditTicket(e, bill, bills))
-    // })
-
     // issue [Bug Hunt] - Dashboard
     // Délégation d'événements : attache un seul événement au conteneur des tickets
-    $(`#status-bills-container${this.index}`).off("click").on("click", ".bill-card", (e) => {
-      const billId = $(e.currentTarget).attr('id').replace('open-bill', '');
-      const bill = bills.find(b => b.id === billId);
-      if (bill) this.handleEditTicket(e, bill, bills);
+    $(`#status-bills-container${this.index}`) // Container des tickets
+      // Supprimer tous les événements "click" existants attachés à ce conteneur
+      .off("click")
+      // Ajouter un nouvel événement "click" au conteneur
+      .on("click", ".bill-card", (e) => {
+        // Récupèrer l'ID du ticket à partir de l'attribut "id" de l'élément cliqué
+        const billId = $(e.currentTarget).attr('id').replace('open-bill', '');
+        // Trouver dans la liste des factures (`bills`) la facture qui correspond à cet ID
+        const bill = bills.find(b => b.id === billId);
+        // Si une facture correspondante est trouvée, appelle la méthode handleEditTicket
+        if (bill) this.handleEditTicket(e, bill, bills);
     });
-
-    // return bills
-
   }
 
   getBillsAllUsers = () => {
