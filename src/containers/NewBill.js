@@ -92,7 +92,7 @@ export default class NewBill {
       status: 'pending'
     }
     this.updateBill(bill) // appel de l'envoi des données au backend
-    this.onNavigate(ROUTES_PATH['Bills']) // redirige l'utilisateur vers la page des factures (Bills)
+    this.onNavigate(ROUTES_PATH['Bills']) // redirige l'utilisateur vers la page des notes de frais (Bills)
   }
 
   // not need to cover this function by tests
@@ -102,7 +102,7 @@ export default class NewBill {
       .bills()
       .update({data: JSON.stringify(bill), selector: this.billId})  // bill est envoyé au backend avec la méthode update
       .then(() => {
-        this.onNavigate(ROUTES_PATH['Bills']) // redirige vers la page des factures
+        this.onNavigate(ROUTES_PATH['Bills']) // redirige vers la page des notes de frais
       })
       .catch(error => console.error(error))
     }

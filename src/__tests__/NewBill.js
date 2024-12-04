@@ -215,7 +215,7 @@ describe("Given I am connected as an employee", () => {
     });
 
     describe("When I post a new bill to the API", () => {
-        // Test d'intégration pour vérifier la création d'une nouvelle facture via l'API
+        // Test d'intégration pour vérifier la création d'une nouvelle note de frais via l'API
         test("Then a new bill should be created", async () => {
             jest.spyOn(mockStore.bills(), "create").mockResolvedValueOnce({
                 fileUrl: "https://localhost:3456/images/test.jpg",

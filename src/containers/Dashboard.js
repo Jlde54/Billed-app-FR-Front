@@ -154,9 +154,9 @@ export default class {
       .on("click", ".bill-card", (e) => {
         // Récupèrer l'ID du ticket à partir de l'attribut "id" de l'élément cliqué
         const billId = $(e.currentTarget).attr('id').replace('open-bill', '');
-        // Trouver dans la liste des factures (`bills`) la facture qui correspond à cet ID
+        // Trouver dans la liste des notes de frais (`bills`) la note de frais qui correspond à cet ID
         const bill = bills.find(b => b.id === billId);
-        // Si une facture correspondante est trouvée, appelle la méthode handleEditTicket
+        // Si une note de frais correspondante est trouvée, appelle la méthode handleEditTicket
         if (bill) this.handleEditTicket(e, bill, bills);
     });
   }
